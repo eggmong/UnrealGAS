@@ -25,6 +25,18 @@ public:
 	// 네트워크 플레이의 경우 서버에서만 호출되는 형태가 될 것이다.
 	virtual void PossessedBy(AController* NewController) override;
 
+	// 입력 처리를 위한 재정의
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+protected:
+	void SetupGASInputComponent();
+	
+	// 입력 눌렀을 때
+	void GASInputPressed(int32 InputId);
+
+	// 입력이 떨어졌을 때
+	void GASInputReleased(int32 InputId);
+
 protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TObjectPtr<class UAbilitySystemComponent> ASC;
