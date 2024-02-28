@@ -7,6 +7,7 @@
 											// 부모 클래스로 상속 받음
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "ArenaBattleGAS.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UABGA_Attack::UABGA_Attack()
 {
@@ -20,8 +21,13 @@ void UABGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	// 어빌리티가 실행될 때 몽타주 재생하도록 먼저 아바타 가져오기 위해 캐릭터로 형 변환
+	// 어빌리티가 실행될 때 몽타주 재생하도록,
+	// 먼저 몽타주 실행에 필요한 아바타를 가져오기 위해 가져온 후 캐릭터로 형 변환
 	AABCharacterBase* ABCharacter = CastChecked<AABCharacterBase>(ActorInfo->AvatarActor.Get());
+
+	// Attack 어빌리티 발동될 때 Move 멈추고, Attack 끝나면 다시 움직이도록 수정
+	ABCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+
 
 	// 모션을 재생하도록 명령을 내리는 'Ability Task'
 	// 어빌리티 태스크가 생성되지만, 바로 실행 되는 것은 아니다.
@@ -49,6 +55,10 @@ void UABGA_Attack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const 
 void UABGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+
+	AABCharacterBase* ABCharacter = CastChecked<AABCharacterBase>(ActorInfo->AvatarActor.Get());
+
+	ABCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 }
 
 void UABGA_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)

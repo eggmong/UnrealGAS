@@ -40,16 +40,24 @@ void AABGASCharacterPlayer::PossessedBy(AController* NewController)
 		ASC->InitAbilityActorInfo(GASPS, this);
 		// 오너 정보에 PlayerState을, 아바타 정보엔 this(Player) 넣어주어서 ASC 초기화 완료
 
-		int32 InputId = 0;
 		for (const auto& StartAbility : StartAbilities)
 		{
 			FGameplayAbilitySpec StartSpec(StartAbility);
-			StartSpec.InputID = InputId++;
+			ASC->GiveAbility(StartSpec);
+		}
 
+		for (const auto& StartInputAbility : StartInputAbilities)
+		{
+			FGameplayAbilitySpec StartSpec(StartInputAbility.Value);
+			StartSpec.InputID = StartInputAbility.Key;
 			ASC->GiveAbility(StartSpec);
 		}
 
 		SetupGASInputComponent();
+
+		// 플레이어가 캐릭터에 빙의할 때 콘솔 커맨드를 호출하도록 함
+		APlayerController* PlayerController = CastChecked<APlayerController>(NewController);
+		PlayerController->ConsoleCommand(TEXT("showdebug abilitysystem"));
 	}
 
 

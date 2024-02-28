@@ -44,4 +44,8 @@ protected:
 	UPROPERTY(EditAnywhere, Category = GAS)
 	TArray<TSubclassOf<class UGameplayAbility>> StartAbilities;
 
+	// + 개선
+	// 입력에 대한 어빌리티 목록 생성
+	UPROPERTY(EditAnywhere, Category = GAS)
+	TMap<int32, TSubclassOf<class UGameplayAbility>> StartInputAbilities;
 };
