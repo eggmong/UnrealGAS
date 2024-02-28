@@ -2,4 +2,76 @@
 
 
 #include "GA/ABGA_Attack.h"
+#include "Tag/ABGameplayTag.h"
+#include "Character/ABCharacterBase.h"		// npc 캐릭터에도 어빌리티를 추가할 가능성이 있기 때문에
+											// 부모 클래스로 상속 받음
+#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "ArenaBattleGAS.h"
 
+UABGA_Attack::UABGA_Attack()
+{
+	// 인스턴스 폴리싱 지정
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+
+
+}
+
+void UABGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+{
+	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+
+	// 어빌리티가 실행될 때 몽타주 재생하도록 먼저 아바타 가져오기 위해 캐릭터로 형 변환
+	AABCharacterBase* ABCharacter = CastChecked<AABCharacterBase>(ActorInfo->AvatarActor.Get());
+
+	// 모션을 재생하도록 명령을 내리는 'Ability Task'
+	// 어빌리티 태스크가 생성되지만, 바로 실행 되는 것은 아니다.
+	UAbilityTask_PlayMontageAndWait* PlayAttackTask = UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, TEXT("PlayAttack"), ABCharacter->GetComboActionMontage());
+	// OwningAbility : 이 태스크를 소유하고 있는 어빌리티
+	// TaskInstanceName : 이 태스크를 가리킬 수 있는 고유 이름
+	// MontageToPlay : 캐릭터에서 제공 받을 몽타주 에셋
+
+	// 태스크가 종료될 때 실행될 함수를 델리게이트(OnCompleted)에 바인딩해준다
+	PlayAttackTask->OnCompleted.AddDynamic(this, &UABGA_Attack::OnCompleteCallback);
+
+	// Interrupt 발생했을 때의 함수도 바인딩해줌
+	PlayAttackTask->OnInterrupted.AddDynamic(this, &UABGA_Attack::OnInterruptedCallback);
+
+	// 이걸 호출해줘야 태스크가 실행된다.
+	PlayAttackTask->ReadyForActivation();
+
+}
+
+void UABGA_Attack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
+{
+	Super::CancelAbility(Handle, ActorInfo, ActivationInfo, bReplicateCancelAbility);
+}
+
+void UABGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
+{
+	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+void UABGA_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
+{
+	ABGAS_LOG(LogABGAS, Log, TEXT("Begin"));
+}
+
+void UABGA_Attack::OnCompleteCallback()
+{
+	// 리플리케이션 옵션. 사용 안할거지만...
+	bool bReplicatedEndAbility = true;
+
+	// 취소된건지? -> 잘 완료 된거니까 아니라서 false
+	bool bWasCancelled = false;
+
+	// 어빌리티가 다 끝났다고 상태 지정
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+}
+
+void UABGA_Attack::OnInterruptedCallback()
+{
+	bool bReplicatedEndAbility = true;
+	bool bWasCancelled = true;
+
+	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, bReplicatedEndAbility, bWasCancelled);
+}
