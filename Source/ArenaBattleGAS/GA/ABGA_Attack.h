@@ -33,4 +33,20 @@ protected:
 
 	UFUNCTION()
 	void OnInterruptedCallback();
+
+	FName GetNextSection();
+
+	void StartComboTimer();
+	void CheckComboInput();
+
+protected:
+	UPROPERTY()
+	TObjectPtr<class UABComboActionData> CurrentComboData;
+
+	// 몇 콤보인지 저장할 변수
+	uint8 CurrentCombo = 0;
+
+	FTimerHandle ComboTimerHandle;
+
+	bool HasNextComboInput = false;
 };
