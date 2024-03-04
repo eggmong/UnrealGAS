@@ -72,7 +72,7 @@ void UABGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 
 void UABGA_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
 {
-	ABGAS_LOG(LogABGAS, Log, TEXT("Begin"));
+	//ABGAS_LOG(LogABGAS, Log, TEXT("Begin"));
 
 	if (!ComboTimerHandle.IsValid())
 	{
