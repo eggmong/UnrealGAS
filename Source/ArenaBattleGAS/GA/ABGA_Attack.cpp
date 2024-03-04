@@ -49,6 +49,7 @@ void UABGA_Attack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 	// 이걸 호출해줘야 태스크가 실행된다.
 	PlayAttackTask->ReadyForActivation();
 
+	StartComboTimer();
 }
 
 void UABGA_Attack::CancelAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateCancelAbility)
@@ -63,6 +64,10 @@ void UABGA_Attack::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGa
 	AABCharacterBase* ABCharacter = CastChecked<AABCharacterBase>(ActorInfo->AvatarActor.Get());
 
 	ABCharacter->GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+
+	CurrentComboData = nullptr;
+	CurrentCombo = 0;
+	HasNextComboInput = false;
 }
 
 void UABGA_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo)
@@ -71,8 +76,16 @@ void UABGA_Attack::InputPressed(const FGameplayAbilitySpecHandle Handle, const F
 
 	if (!ComboTimerHandle.IsValid())
 	{
-		// 콤보 타이머 핸들이 유효하지 않으면
+		// 콤보 타이머 핸들이 유효하지 않으면 = 핸들 없는데 입력이 들어왔다는 것 -> 마지막 콤보
+		
+		HasNextComboInput = false;
+		// 마지막 콤보일 땐 타이머가 발동되지 않도록
+	}
+	else
+	{
+		// 하지만 타이머 핸들이 유효하다면 = 현재 돌아가고 있다면
 
+		HasNextComboInput = true;
 	}
 }
 
@@ -130,7 +143,7 @@ void UABGA_Attack::CheckComboInput()
 
 	if (HasNextComboInput)
 	{
-		// 콤보 인풋이 있으면 다음 섹션으로 이동
+		// 콤보 인풋이 있으면 다음 섹션으로 이동 (다음 섹션의 애니 재생)
 		MontageJumpToSection(GetNextSection());
 		StartComboTimer();
 		HasNextComboInput = false;
