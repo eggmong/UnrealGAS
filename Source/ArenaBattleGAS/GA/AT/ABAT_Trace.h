@@ -26,7 +26,7 @@ public:
 	virtual void Activate() override;
 	virtual void OnDestroy(bool AbilityEnded) override;
 
-	// 타겟 액터TA 생성
+	// 타겟 액터(TA) 생성
 	void SpawnAndInitializeTargetActor();
 
 	// TA의 타겟팅 결과 델리게이트 구독 및 마무리할 함수
@@ -42,11 +42,11 @@ public:
 protected:
 	// CreateTask 에서 받은 타겟액터 저장하기 위한 변수들 생성
 
-	// 생성한 클래스 정보 저장
+	// 생성한 타겟액터의 클래스 정보 저장
 	UPROPERTY()
 	TSubclassOf<class AABTA_Trace> TargetActorClass;
 
-	// 타겟 액터 스폰시켰을 때 저장할 수 있는 액터
+	// 타겟 액터 스폰시킨 후 그걸 저장할 액터 변수
 	UPROPERTY()
 	TObjectPtr<class AABTA_Trace> SpawnedTargetActor;
 };

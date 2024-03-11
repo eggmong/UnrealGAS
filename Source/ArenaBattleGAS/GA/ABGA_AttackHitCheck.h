@@ -18,4 +18,9 @@ public:
 	UABGA_AttackHitCheck();
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+protected:
+	// AbilityTask와 TargetActor가 마무리 되고, GA에서 타겟 정보를 받는 부분 구현
+	UFUNCTION()
+	void OnTraceResultCallback(const FGameplayAbilityTargetDataHandle& TargetDataHandle);
 };
