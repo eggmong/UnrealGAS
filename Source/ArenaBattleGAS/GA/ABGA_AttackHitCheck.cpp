@@ -6,6 +6,7 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GA/AT/ABAT_Trace.h"
 #include "GA/TA/ABTA_Trace.h"
+#include "Attribute/ABCharacterAttributeSet.h"
 
 UABGA_AttackHitCheck::UABGA_AttackHitCheck()
 {
@@ -35,8 +36,33 @@ void UABGA_AttackHitCheck::OnTraceResultCallback(const FGameplayAbilityTargetDat
 	if (UAbilitySystemBlueprintLibrary::TargetDataHasHitResult(TargetDataHandle, 0))
 	{
 		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(TargetDataHandle, 0);
-
 		ABGAS_LOG(LogABGAS, Log, TEXT("Target %s Detected"), *(HitResult.GetActor()->GetName()));
+
+		UAbilitySystemComponent* SourceASC = GetAbilitySystemComponentFromActorInfo_Checked();
+
+		// 데미지 전달 (타겟 액터에게)
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitResult.GetActor());
+
+		if (!SourceASC || !TargetASC)
+		{
+			ABGAS_LOG(LogABGAS, Error, TEXT("ASC not found!"));
+			return;
+		}
+
+		const UABCharacterAttributeSet* SourceAttribute = SourceASC->GetSet<UABCharacterAttributeSet>();
+		UABCharacterAttributeSet* TargetAttribute = const_cast<UABCharacterAttributeSet*>(TargetASC->GetSet<UABCharacterAttributeSet>());
+		// Source는 데미지값을 읽어들이고, Target은 값을 '변경'해줘야 한다.
+		// 그런데 GetSet 함수는 const로 반환하므로 변경을 할 수 없다.
+		// 그래서 const_cast를 하여 const를 제거한다.
+
+		if (!SourceAttribute || !TargetAttribute)
+		{
+			ABGAS_LOG(LogABGAS, Error, TEXT("Attribute not found!"));
+			return;
+		}
+
+		const float AttackDamage = SourceAttribute->GetAttackRate();
+		TargetAttribute->SetHealth(TargetAttribute->GetHealth() - AttackDamage);
 	}
 
 	bool bReplicatedEndAbility = true;

@@ -7,6 +7,10 @@
 #include "Components/CapsuleComponent.h"
 #include "Physics/ABCollision.h"
 #include "DrawDebugHelpers.h"
+#include "AbilitySystemComponent.h"
+#include "Attribute/ABCharacterAttributeSet.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "ArenaBattleGAS.h"
 
 AABTA_Trace::AABTA_Trace()
 {
@@ -36,9 +40,25 @@ FGameplayAbilityTargetDataHandle AABTA_Trace::MakeTargetData() const
 {
 	ACharacter* Character = CastChecked<ACharacter>(SourceActor);
 
+	// ASC 포인터를 가져온다
+	UAbilitySystemComponent* ASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(SourceActor);
+	if (!ASC)
+	{
+		ABGAS_LOG(LogABGAS, Error, TEXT("ASC not found!"));
+		return FGameplayAbilityTargetDataHandle();
+	}
+
+	// 어트리뷰트셋 포인터를 가져온다
+	const UABCharacterAttributeSet* AttributeSet = ASC->GetSet<UABCharacterAttributeSet>();
+	if (!AttributeSet)
+	{
+		ABGAS_LOG(LogABGAS, Error, TEXT("AttributeSet not found!"));
+		return FGameplayAbilityTargetDataHandle();
+	}
+
 	FHitResult OutHitResult;
-	const float AttackRange = 100.0f;
-	const float AttackRadius = 50.0f;
+	const float AttackRange = AttributeSet->GetAttackRange();
+	const float AttackRadius = AttributeSet->GetAttackRadius();
 
 	// false : 충돌 쿼리를 단순하게. true로 하면 더 많은 정보 수집
 	// 자기 자신(Character)는 제외
@@ -72,5 +92,5 @@ FGameplayAbilityTargetDataHandle AABTA_Trace::MakeTargetData() const
 	}
 #endif
 
-	return FGameplayAbilityTargetDataHandle();
+	return DataHandle;
 }
